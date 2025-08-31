@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}كلية العلوم - جامعة أسوان{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        .text-balance { text-wrap: balance; }
+        .text-pretty { text-wrap: pretty; }
+        :root {
+            --primary-color: #164e63;
+            --secondary-color: #10b981;
+            --accent-color: #ecfeff;
+            --text-color: #374151;
+            --muted-color: #f1f5f9;
+        }
+        .chat-button {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 1000;
+            background: #164e63;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .chat-button:active {
+            transform: scale(0.9);
+        }
+        .chat-modal {
+            position: fixed;
+            bottom: 100px;
+            left: 2rem;
+            width: 350px;
+            height: 400px;
+            background: white;
+            border: 2px solid #164e63;
+            border-radius: 12px;
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+        }
+        .media-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .media-item {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white border-b border-cyan-800 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="/">
+                    <div class="flex items-center space-x-4 space-x-reverse">
+                        <img src="https://files.catbox.moe/wazr35.png" alt="شعار كلية العلوم" class="h-12 w-12">
+                        <div>
+                            <p class="text-lg font-bold text-cyan-800 text-balance">
+                                كلية العلوم 👨‍🔬
+                            </p>
+                            <p class="text-sm text-gray-600">جامعة أسوان - منارة العلماء</p>
+                        </div>
+                    </div>
+                </a>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <a href="https://chat.whatsapp.com/CglJjN7sp3YJwFoyE0qH42?mode=ac_t" class="text-cyan-800 hover:text-cyan-900 flex items-center space-x-2 space-x-reverse">
+                        <!--i data-lucide="message-circle-question-mark" class="w-4 h-4"></i-->
+                        جروب الواتساب
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 min-h-screen">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-md mb-2">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="chat-button" onclick="toggleChat()">
+        <i data-lucide="bot" class="w-6 h-6"></i>
+    </div>
+
+    <div class="chat-modal overflow-hidden" id="chatModal">
+        <div class="p-4 bg-cyan-800 text-white rounded-t-lg">
+            <div class="flex justify-between items-center">
+                <h3 class="font-semibold">مساعد ذكي</h3>
+                <button onclick="toggleChat()" class="text-white hover:text-gray-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 p-4 overflow-y-auto" id="chatMessages" style="height: 280px;">
+            <div class="mb-2"><div class="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg inline-block">مرحباً! كيف يمكنني مساعدتك؟</div></div>
+        </div>
+        <div class="p-4 border-t">
+            <div class="flex items-center">
+                <input type="text" id="chatInput" placeholder="اكتب سؤالك هنا..." class="flex-1 h-10 px-3 border border-gray-300 rounded-md text-sm box-border w-full" onkeypress="if(event.key==='Enter') sendMessage()">
+                <button onclick="sendMessage()" class="h-10 w-10 shrink-0 bg-cyan-800 text-white rounded-md hover:bg-cyan-900 flex items-center justify-center mr-2">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!--footer class="bg-cyan-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center text-center md:text-right">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-lg font-semibold mb-2">كلية العلوم - جامعة أسوان</p>
+                    <p class="text-cyan-100">نحن هنا لمساعدة الطلاب الجدد والإجابة على جميع استفساراتكم</p>
+                    <p class="text-sm text-cyan-200 mt-4">إذا لم تجد إجابة لسؤالك، تواصل مع مجموعة دفعتك</p>
+                </div>
+                <div class="flex space-x-4 space-x-reverse">
+                    <a href="https://chat.whatsapp.com/CglJjN7sp3YJwFoyE0qH42?mode=ac_t" class="text-white hover:text-cyan-200" title="مجموعة واتساب">
+                        <i data-lucide="developer" class="w-6 h-6"></i>
+                    </a>
+                    <a href="https://www.facebook.com/groups/aswan.science" class="text-white hover:text-cyan-200" title="صفحة فيسبوك">
+                        <i data-lucide="facebook" class="w-6 h-6"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer-->
+
+    <script>
+        lucide.createIcons();
+        
+        function toggleChat() {
+            const modal = document.getElementById('chatModal');
+            modal.style.display = modal.style.display === 'none' || modal.style.display === '' ? 'flex' : 'none';
+        }
+        
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const messages = document.getElementById('chatMessages');
+        const message = input.value.trim();
+    
+        if (!message) return;
+    
+        messages.innerHTML += `
+            <div class="mb-2 text-right">
+                <div class="bg-cyan-100 text-cyan-800 px-3 py-2 rounded-lg inline-block">
+                    ${message}
+                </div>
+            </div>
+        `;
+    
+        input.value = '';
+    
+        messages.innerHTML += `
+            <div class="mb-2" id="loading-message">
+                <div class="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg inline-block">
+                    جاري الكتابة...
+                </div>
+            </div>
+        `;
+    
+        messages.scrollTop = messages.scrollHeight;
+    
+        let data;
+    
+        do {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            });
+    
+            data = await response.json();
+    
+        } while (data.response === 'Login to continue using');
+    
+        const loadingMsg = document.getElementById('loading-message');
+        if (loadingMsg) loadingMsg.remove();
+    
+        const responseText = data.response || data.error || 'عذراً، حدث خطأ';
+    
+        messages.innerHTML += `
+            <div class="mb-2">
+                <div class="bg-gray-100 text-gray-800 px-3 py-2 rounded-lg inline-block text-pretty">
+                    ${DOMPurify.sanitize(marked.parse(responseText))}
+                </div>
+            </div>
+        `;
+    
+        messages.scrollTop = messages.scrollHeight;
+    }
+</script>
+</body>
+</html>
