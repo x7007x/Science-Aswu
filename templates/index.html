@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-white rounded-lg border border-cyan-800 p-8 mb-8">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-cyan-800 mb-4 text-balance">ازيك يا استاذ عالِم 🙂</h1>
+        <p class="text-lg text-gray-700 mb-6 text-pretty">احنا هنا علشان نساعدك في رحلتك ونوفرلك إجابات لكل استفساراتك</p>
+        
+        <form method="GET" class="max-w-2xl mx-auto mb-6">
+            <div class="relative">
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="ابحث في الأسئلة والإجابات..." 
+                       class="w-full px-6 py-4 pl-12 border border-gray-200 rounded-full focus:outline-none focus:border-cyan-800 focus:ring-2 focus:ring-cyan-100 text-lg">
+                <button type="submit" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-3 rounded-full hover:bg-emerald-700 transition-colors">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!--div class="bg-cyan-50 rounded-lg p-6 border border-cyan-200">
+        <h2 class="text-2xl font-semibold text-cyan-800 mb-4 flex items-center space-x-2 space-x-reverse">
+            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+            <span>للطلاب الجدد</span>
+        </h2>
+        <p class="text-gray-700 mb-4">إذا لم تجد إجابة لسؤالك هنا، لا تتردد في:</p>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>التواصل مع مجموعة دفعتك على وسائل التواصل الاجتماعي</li>
+            <li>زيارة مكتب اتحاد الطلبة في الكلية</li>
+            <li>سؤال الطلاب الأكبر سناً في نفس التخصص</li>
+            <li>استخدام المساعد الذكي في أسفل الصفحة</li>
+        </ul>
+    </div-->
+</div>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2 space-x-reverse">
+        <i data-lucide="help-circle" class="w-6 h-6 text-emerald-600"></i>
+        <span>الأسئلة والإجابات</span>
+    </h2>
+</div>
+
+{% if search_query %}
+    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        <p class="text-blue-800">نتائج البحث عن: <strong>"{{ search_query }}"</strong></p>
+        <a href="{{ url_for('index') }}" class="text-blue-600 hover:text-blue-800 text-sm">عرض جميع المحتويات</a>
+    </div>
+{% endif %}
+
+<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    {% for entry in entries %}
+        <div class="bg-white rounded-lg border hover:border-emerald-300 transition-all duration-300 overflow-hidden">
+            {% if entry.media_files and entry.media_files|length > 0 %}
+                <div class="relative h-48 bg-gray-100">
+                    {% set first_media = entry.media_files[0] %}
+                    {% if first_media.type == 'image' %}
+                        <img src="{{ first_media.url }}" alt="{{ entry.title }}" class="w-full h-full object-cover">
+                    {% elif first_media.type == 'video' %}
+                        <video src="{{ first_media.url }}" class="w-full h-full object-cover" muted></video>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                            <i data-lucide="play-circle" class="w-12 h-12 text-white"></i>
+                        </div>
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <i data-lucide="file" class="w-16 h-16 text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    
+                    {% if entry.media_files|length > 1 %}
+                        <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded-full text-xs">
+                            +{{ entry.media_files|length - 1 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% elif entry.media_url %}
+                <div class="h-48 bg-gray-100">
+                    {% if entry.media_type == 'image' %}
+                        <img src="{{ entry.media_url }}" alt="{{ entry.title }}" class="w-full h-full object-cover">
+                    {% elif entry.media_type == 'video' %}
+                        <video src="{{ entry.media_url }}" class="w-full h-full object-cover" muted></video>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                            <i data-lucide="play-circle" class="w-12 h-12 text-white"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-3 text-balance">{{ entry.title }}</h3>
+                <p class="text-gray-600 text-sm mb-4 leading-relaxed">{{ entry.description[:150] }}{% if entry.description|length > 150 %}...{% endif %}</p>
+                
+                <div class="flex items-center justify-between">
+                    <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="text-emerald-600 hover:text-emerald-800 flex items-center text-sm space-x-1 space-x-reverse font-medium">
+                        <span>اقرأ المزيد</span>
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    </a>
+                    
+                    {% if entry.media_files and entry.media_files|length > 0 %}
+                        <div class="flex items-center text-gray-500 text-xs space-x-1 space-x-reverse">
+                            <i data-lucide="paperclip" class="w-4 h-4"></i>
+                            <span>{{ entry.media_files|length }} مرفق</span>
+                        </div>
+                    {% elif entry.media_url %}
+                        <div class="flex items-center text-gray-500 text-xs space-x-1 space-x-reverse">
+                            {% if entry.media_type == 'image' %}
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                            {% elif entry.media_type == 'video' %}
+                                <i data-lucide="video" class="w-4 h-4"></i>
+                            {% else %}
+                                <i data-lucide="file" class="w-4 h-4"></i>
+                            {% endif %}
+                            <span>مرفق</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if not entries %}
+    <div class="text-center py-16">
+        <i data-lucide="book-open" class="w-20 h-20 text-gray-300 mx-auto mb-6"></i>
+        <h3 class="text-xl font-medium text-gray-900 mb-3">
+            {% if search_query %}
+                لا توجد نتائج للبحث
+            {% else %}
+                لا يوجد محتوى حتى الآن
+            {% endif %}
+        </h3>
+        <p class="text-gray-500 mb-6">
+            {% if search_query %}
+                جرب البحث بكلمات مختلفة أو تواصل مع مجموعة دفعتك
+            {% else %}
+                سيتم إضافة المحتوى قريباً لمساعدة الطلاب الجدد
+            {% endif %}
+        </p>
+        {% if search_query %}
+            <a href="{{ url_for('index') }}" class="bg-emerald-600 text-white px-6 py-3 rounded-md hover:bg-emerald-700 inline-flex items-center space-x-2 space-x-reverse">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span>عرض جميع المحتويات</span>
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
