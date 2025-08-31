@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ entry.title }} - اتحاد طلبة كلية العلوم{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <a href="{{ url_for('index') }}" class="text-emerald-600 hover:text-emerald-800 flex items-center mb-6 space-x-2 space-x-reverse">
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <span>العودة إلى جميع المحتويات</span>
+        </a>
+        
+        <h1 class="text-4xl font-bold text-cyan-800 mb-4 text-balance">{{ entry.title }}</h1>
+        
+        <div class="flex items-center text-sm text-gray-500 space-x-4 space-x-reverse mb-8">
+            <span>تاريخ الإنشاء: {{ entry.created_at[:10] }}</span>
+            {% if entry.updated_at != entry.created_at %}
+                <span>آخر تحديث: {{ entry.updated_at[:10] }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg border overflow-hidden">
+        {% if entry.media_files and entry.media_files|length > 0 %}
+            <div class="border-b">
+                {% if entry.media_files|length == 1 %}
+                    {% set media = entry.media_files[0] %}
+                    {% if media.type == 'image' %}
+                        <img src="{{ media.url }}" alt="{{ entry.title }}" class="w-full max-h-96 object-cover">
+                    {% elif media.type == 'video' %}
+                        <video src="{{ media.url }}" controls class="w-full max-h-96"></video>
+                    {% else %}
+                        <div class="p-8 bg-gray-50 text-center">
+                            <i data-lucide="file" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                            <a href="{{ media.url }}" target="_blank" class="text-emerald-600 hover:text-emerald-800 font-medium text-lg">
+                                تحميل {{ media.filename }}
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="media-gallery p-6">
+                        {% for media in entry.media_files %}
+                            <div class="media-item">
+                                {% if media.type == 'image' %}
+                                    <img src="{{ media.url }}" alt="{{ media.filename }}" class="w-full h-48 object-cover cursor-pointer" onclick="openMediaModal('{{ media.url }}', 'image')">
+                                {% elif media.type == 'video' %}
+                                    <video src="{{ media.url }}" class="w-full h-48 object-cover cursor-pointer" onclick="openMediaModal('{{ media.url }}', 'video')"></video>
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                                        <i data-lucide="play-circle" class="w-8 h-8 text-white"></i>
+                                    </div>
+                                {% else %}
+                                    <div class="h-48 bg-gray-100 flex flex-col items-center justify-center p-4">
+                                        <i data-lucide="file" class="w-12 h-12 text-gray-400 mb-2"></i>
+                                        <a href="{{ media.url }}" target="_blank" class="text-emerald-600 hover:text-emerald-800 text-sm text-center">
+                                            {{ media.filename }}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% elif entry.media_url %}
+            <div class="border-b">
+                {% if entry.media_type == 'image' %}
+                    <img src="{{ entry.media_url }}" alt="{{ entry.title }}" class="w-full max-h-96 object-cover">
+                {% elif entry.media_type == 'video' %}
+                    <video src="{{ entry.media_url }}" controls class="w-full max-h-96"></video>
+                {% else %}
+                    <div class="p-8 bg-gray-50 text-center">
+                        <i data-lucide="file" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                        <a href="{{ entry.media_url }}" target="_blank" class="text-emerald-600 hover:text-emerald-800 font-medium text-lg">
+                            تحميل الملف المرفق
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <div class="p-8">
+            <div class="prose max-w-none">
+                <p class="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">{{ entry.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if session.user_phone %}
+        <div class="mt-8 flex justify-end space-x-3 space-x-reverse">
+            <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="bg-emerald-600 text-white px-6 py-3 rounded-md hover:bg-emerald-700 flex items-center space-x-2 space-x-reverse">
+                <i data-lucide="edit" class="w-4 h-4"></i>
+                <span>تعديل المحتوى</span>
+            </a>
+            <a href="{{ url_for('delete_entry_route', entry_id=entry.id) }}" 
+               onclick="return confirm('هل أنت متأكد من حذف هذا المحتوى؟')"
+               class="bg-red-600 text-white px-6 py-3 rounded-md hover:bg-red-700 flex items-center space-x-2 space-x-reverse">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <span>حذف المحتوى</span>
+            </a>
+        </div>
+    {% endif %}
+
+    <!--div class="mt-12 bg-cyan-50 rounded-lg border border-cyan-200 p-8">
+        <h3 class="text-xl font-semibold text-cyan-800 mb-4 flex items-center space-x-2 space-x-reverse">
+            <i data-lucide="users" class="w-5 h-5"></i>
+            <span>لم تجد ما تبحث عنه؟</span>
+        </h3>
+        <p class="text-gray-700 mb-4">إذا كان لديك أسئلة إضافية أو تحتاج مساعدة أكثر:</p>
+        <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>تواصل مع مجموعة دفعتك على وسائل التواصل الاجتماعي</li>
+            <li>اسأل الطلاب الأكبر سناً في نفس التخصص</li>
+            <li>زر مكتب اتحاد الطلبة في الكلية</li>
+            <li>تواصل مع أعضاء هيئة التدريس في ساعات المكتب</li>
+        </ul>
+    </div-->
+</div>
+
+<div id="mediaModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
+    <div class="relative max-w-4xl max-h-full">
+        <button onclick="closeMediaModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 z-10">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+        <div id="mediaContent"></div>
+    </div>
+</div>
+
+<script>
+function openMediaModal(url, type) {
+    const modal = document.getElementById('mediaModal');
+    const content = document.getElementById('mediaContent');
+    
+    if (type === 'image') {
+        content.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain">`;
+    } else if (type === 'video') {
+        content.innerHTML = `<video src="${url}" controls class="max-w-full max-h-full">`;
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function closeMediaModal() {
+    const modal = document.getElementById('mediaModal');
+    modal.classList.add('hidden');
+    document.getElementById('mediaContent').innerHTML = '';
+}
+</script>
+{% endblock %}
