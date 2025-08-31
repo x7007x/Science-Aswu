@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}إنشاء محتوى جديد - اتحاد طلبة كلية العلوم{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-cyan-800 mb-2">إنشاء محتوى جديد</h1>
+        <p class="text-gray-600">أضف سؤال وإجابة أو معلومات مفيدة للطلاب</p>
+    </div>
+
+    <div class="bg-white rounded-lg border p-8">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">العنوان</label>
+                <input type="text" id="title" name="title" required 
+                       placeholder="مثال: كيفية التسجيل في المواد الاختيارية"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-800 focus:border-transparent">
+            </div>
+            
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">الشرح التفصيلي</label>
+                <textarea id="description" name="description" rows="10" required 
+                          placeholder="اكتب شرحاً مفصلاً يساعد الطلاب على فهم الموضوع..."
+                          class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-800 focus:border-transparent"></textarea>
+            </div>
+            
+            <div>
+                <label for="media" class="block text-sm font-medium text-gray-700 mb-2">المرفقات (اختياري)</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-cyan-400 transition-colors">
+                    <input type="file" id="media" name="media" multiple accept="image/*,video/*,*" 
+                           class="hidden" onchange="handleFileSelect(this)">
+                    <label for="media" class="cursor-pointer">
+                        <i data-lucide="upload" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                        <p class="text-gray-600 mb-2">اضغط لاختيار الملفات أو اسحبها هنا</p>
+                        <p class="text-xs text-gray-500">يمكنك رفع عدة صور، فيديوهات، أو ملفات لتوضيح المحتوى</p>
+                    </label>
+                </div>
+                
+                <div id="filePreview" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 hidden"></div>
+            </div>
+            
+            <div class="flex justify-between pt-6">
+                <a href="{{ url_for('admin') }}" class="bg-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-400 flex items-center space-x-2 space-x-reverse">
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <span>إلغاء</span>
+                </a>
+                <button type="submit" class="bg-emerald-600 text-white px-6 py-3 rounded-md hover:bg-emerald-700 flex items-center space-x-2 space-x-reverse">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>حفظ المحتوى</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function handleFileSelect(input) {
+    const preview = document.getElementById('filePreview');
+    const files = input.files;
+    
+    if (files.length === 0) {
+        preview.classList.add('hidden');
+        return;
+    }
+    
+    preview.innerHTML = '';
+    preview.classList.remove('hidden');
+    
+    Array.from(files).forEach((file, index) => {
+        const fileDiv = document.createElement('div');
+        fileDiv.className = 'relative border rounded-lg p-3 bg-gray-50';
+        
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'w-full h-24 object-cover rounded mb-2';
+            fileDiv.appendChild(img);
+        } else if (file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.src = URL.createObjectURL(file);
+            video.className = 'w-full h-24 object-cover rounded mb-2';
+            video.muted = true;
+            fileDiv.appendChild(video);
+        } else {
+            const icon = document.createElement('div');
+            icon.className = 'w-full h-24 flex items-center justify-center bg-gray-200 rounded mb-2';
+            icon.innerHTML = '<i data-lucide="file" class="w-8 h-8 text-gray-400"></i>';
+            fileDiv.appendChild(icon);
+        }
+        
+        const fileName = document.createElement('p');
+        fileName.textContent = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
+        fileName.className = 'text-xs text-gray-600 text-center';
+        fileDiv.appendChild(fileName);
+        
+        preview.appendChild(fileDiv);
+    });
+    
+    lucide.createIcons();
+}
+</script>
+{% endblock %}
