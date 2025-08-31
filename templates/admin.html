@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة الإدارة - اتحاد طلبة كلية العلوم{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-cyan-800 mb-2">لوحة الإدارة</h1>
+        <p class="text-gray-600">إدارة محتوى الموقع والأسئلة والإجابات</p>
+    </div>
+    <div class="flex space-x-3 space-x-reverse">
+        <a href="{{ url_for('create_entry') }}" class="bg-emerald-600 text-white px-6 py-3 rounded-md hover:bg-emerald-700 flex items-center space-x-2 space-x-reverse">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+            <span>إضافة محتوى جديد</span>
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg border">
+    <div class="px-6 py-4 border-b bg-gray-50">
+        <h2 class="text-lg font-semibold text-gray-900">جميع المحتويات</h2>
+    </div>
+    
+    {% if entries %}
+        <div class="divide-y divide-gray-200">
+            {% for entry in entries %}
+                <div class="px-6 py-6 hover:bg-gray-50">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2 text-balance">{{ entry.title }}</h3>
+                            <p class="text-gray-600 text-sm mb-3 leading-relaxed">{{ entry.description[:200] }}{% if entry.description|length > 200 %}...{% endif %}</p>
+                            <div class="flex items-center text-xs text-gray-500 space-x-4 space-x-reverse">
+                                <span>تاريخ الإنشاء: {{ entry.created_at[:10] }}</span>
+                                {% if entry.updated_at != entry.created_at %}
+                                    <span>آخر تحديث: {{ entry.updated_at[:10] }}</span>
+                                {% endif %}
+                                {% if entry.media_url %}
+                                    <span class="flex items-center space-x-1 space-x-reverse">
+                                        {% if entry.media_type == 'image' %}
+                                            <i data-lucide="image" class="w-3 h-3"></i>
+                                        {% elif entry.media_type == 'video' %}
+                                            <i data-lucide="video" class="w-3 h-3"></i>
+                                        {% else %}
+                                            <i data-lucide="file" class="w-3 h-3"></i>
+                                        {% endif %}
+                                        <span>مرفق</span>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse mr-4">
+                            <a href="{{ url_for('view_entry', entry_id=entry.id) }}" class="text-gray-600 hover:text-gray-800 p-2 rounded-md hover:bg-gray-100">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </a>
+                            <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="text-emerald-600 hover:text-emerald-800 p-2 rounded-md hover:bg-emerald-50">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </a>
+                            <a href="{{ url_for('delete_entry_route', entry_id=entry.id) }}" 
+                               onclick="return confirm('هل أنت متأكد من حذف هذا المحتوى؟')"
+                               class="text-red-600 hover:text-red-800 p-2 rounded-md hover:bg-red-50">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="px-6 py-16 text-center">
+            <i data-lucide="file-text" class="w-20 h-20 text-gray-300 mx-auto mb-6"></i>
+            <h3 class="text-xl font-medium text-gray-900 mb-3">لا يوجد محتوى حتى الآن</h3>
+            <p class="text-gray-500 mb-6">ابدأ بإنشاء أول محتوى لمساعدة الطلاب</p>
+            <a href="{{ url_for('create_entry') }}" class="bg-emerald-600 text-white px-6 py-3 rounded-md hover:bg-emerald-700 inline-flex items-center space-x-2 space-x-reverse">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+                <span>إنشاء محتوى</span>
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
